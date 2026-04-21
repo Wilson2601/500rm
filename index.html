@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RiseRight v3.0 - Kencana Team Elite</title>
+    <style>
+        :root {
+            --primary: #4A90E2; --orange: #FF9F0A; --bg: #F5F7FA; --card: #FFFFFF;
+            --text: #1C1C1E; --subtext: #8E8E93; --ios-shell: #1a1a1a; --success: #34C759;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; transition: all 0.25s ease; }
+        body { background-color: #121212; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, sans-serif; }
+
+        #iphone-shell {
+            width: 400px; height: 860px; background: var(--ios-shell);
+            border-radius: 60px; position: relative; padding: 10px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8); border: 2px solid #333;
+        }
+
+        #screen {
+            width: 100%; height: 100%; background: var(--bg);
+            border-radius: 50px; overflow: hidden; position: relative;
+            display: flex; flex-direction: column;
+        }
+
+        .dynamic-island {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            width: 125px; height: 35px; background: #000; border-radius: 20px;
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+            color: #FF9F0A; font-size: 11px; font-weight: bold; cursor: pointer;
+        }
+
+        .content-container { flex: 1; overflow-y: auto; position: relative; }
+        .page { display: none; padding: 25px; padding-top: 70px; padding-bottom: 150px; }
+        .page.active { display: block; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--card); border-radius: 28px; padding: 22px; margin-bottom: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .header { font-size: 32px; font-weight: 800; color: var(--text); margin: 0; }
+        
+        .insight-row { display: flex; align-items: center; gap: 15px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        .insight-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+        .scanner-container {
+            width: 280px; height: 320px; background: #000; margin: 30px auto; 
+            border-radius: 35px; position: relative; overflow: hidden;
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+        .scan-line {
+            position: absolute; width: 100%; height: 4px; 
+            background: linear-gradient(to right, transparent, var(--orange), transparent);
+            box-shadow: 0 0 15px var(--orange); top: 0;
+            animation: moveScan 2.5s infinite linear;
+        }
+        @keyframes moveScan { 0% { top: 10%; } 100% { top: 90%; } }
+        .focus-bracket { position: absolute; width: 30px; height: 30px; border: 3px solid #fff; }
+
+        #settings-modal {
+            position: absolute; bottom: -100%; left: 0; width: 100%; height: 55%;
+            background: white; z-index: 2000; border-radius: 40px 40px 0 0;
+            padding: 30px; box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+        }
+        #settings-modal.open { bottom: 0; }
+
+        .tab-bar {
+            position: absolute; bottom: 0; width: 100%; height: 110px;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(15px);
+            display: flex; justify-content: space-around; padding-top: 15px;
+            border-top: 1px solid #eee; z-index: 999;
+        }
+        .tab-item { display: flex; flex-direction: column; align-items: center; width: 20%; color: #BBB; font-size: 11px; cursor: pointer; }
+        .tab-item.active { color: var(--orange); font-weight: bold; }
+
+        .app-icon-circle { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+<div id="iphone-shell">
+    <div id="screen">
+        <div class="dynamic-island" onclick="switchTab('Alarm', document.querySelectorAll('.tab-item')[2])">☀️ <span id="island-time">06:30</span></div>
+        
+        <div id="settings-modal">
+            <div style="width:40px; height:5px; background:#ddd; border-radius:5px; margin: 0 auto 20px;"></div>
+            <h3 id="set-title">Set Time</h3>
+            <input type="time" id="time-input" style="width:100%; padding:20px; border-radius:15px; border:1px solid #eee; font-size:30px; text-align:center; margin:20px 0;">
+            <button onclick="saveSettings()" style="width:100%; padding:18px; border-radius:18px; background:var(--orange); color:white; border:none; font-weight:bold; font-size:16px;">Confirm Changes</button>
+        </div>
+
+        <div class="content-container">
+            <div id="Home" class="page active">
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:25px">
+                    <div>
+                        <h1 class="header">RiseRight</h1>
+                        <p style="color:var(--subtext); margin:0">Wednesday, April 8</p>
+                    </div>
+                    <div style="background:#FFF5E5; padding:8px 15px; border-radius:12px; color:var(--orange); font-weight:bold; font-size:13px">🔥 5 Days</div>
+                </div>
+
+                <div class="card" style="background: linear-gradient(135deg, #FF7E5F, #FEB47B); color:white; text-align:center; padding:30px">
+                    <div style="font-size:12px; opacity:0.8; margin-bottom:10px">TODAY'S SLEEP SCORE</div>
+                    <div style="font-size:64px; font-weight:800">85</div>
+                    <div style="font-weight:600; font-size:14px">Quality: Excellent ✨</div>
+                </div>
+
+                <div style="display:flex; gap:15px">
+                    <div class="card" style="flex:1" onclick="openSettings('alarm')">
+                        <div style="color:var(--primary); font-weight:bold; font-size:12px">ALARM</div>
+                        <div id="disp-alarm" style="font-size:26px; font-weight:800; margin:5px 0">06:30</div>
+                        <div style="font-size:10px; color:var(--subtext)">Tap to Edit</div>
+                    </div>
+                    <div class="card" style="flex:1" onclick="openSettings('lock')">
+                        <div style="color:var(--orange); font-weight:bold; font-size:12px">LOCK</div>
+                        <div id="disp-lock" style="font-size:26px; font-weight:800; margin:5px 0">22:30</div>
+                        <div style="font-size:10px; color:var(--subtext)">Tap to Edit</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="font-weight:800; margin-bottom:15px">Insights</div>
+                    <div class="insight-row">
+                        <div class="insight-icon" style="background:#EBF3FF; color:var(--primary)">🌙</div>
+                        <div style="flex:1"><div style="font-size:13px; font-weight:bold">Bedtime Average</div><div style="font-size:11px; color:var(--subtext)">10:45 PM • 15 min late</div></div>
+                    </div>
+                    <div class="insight-row" style="border:none">
+                        <div class="insight-icon" style="background:#FFF2E5; color:var(--orange)">☀️</div>
+                        <div style="flex:1"><div style="font-size:13px; font-weight:bold">Sleep Duration</div><div style="font-size:11px; color:var(--subtext)">7h 45m • Target met ✅</div></div>
+                    </div>
+                </div>
+
+                <div class="card" style="background:#f0f7ff; border:1px dashed var(--primary); text-align:center; padding:15px">
+                    <p style="margin:0; font-size:13px; color:var(--primary); font-style:italic">"The best way to predict the future is to create it."</p>
+                </div>
+            </div>
+
+            <div id="Lock" class="page" style="background:#0B132B; color:white">
+                <div style="text-align:center; margin:40px 0">
+                    <div style="font-size:50px">🛡️</div>
+                    <h2 style="margin:10px 0">Sleep Lock Active</h2>
+                    <p style="color:#8E8E93">Your future self will thank you</p>
+                </div>
+
+                <div class="card" style="background:#1A2138; color:white; border:none; text-align:center; padding:35px">
+                    <div style="font-size:11px; opacity:0.6; margin-bottom:15px">SCREEN UNLOCKS IN</div>
+                    <div id="lock-count" style="font-size:48px; font-weight:800; font-family:monospace">08:14:59</div>
+                    <div style="margin-top:15px; font-size:12px; color:var(--orange)">Next Wake Up: <span id="lock-target">06:30</span> AM</div>
+                </div>
+
+                <div style="font-weight:bold; margin-bottom:15px; color:#8E8E93; font-size:12px; letter-spacing:1px">RESTRICTED APPS</div>
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px">
+                    <div style="text-align:center">
+                        <div class="app-icon-circle" style="background:linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); margin:0 auto">📸</div>
+                        <div style="font-size:10px; margin-top:8px">Instagram</div>
+                    </div>
+                    <div style="text-align:center">
+                        <div class="app-icon-circle" style="background:#000; margin:0 auto">🎬</div>
+                        <div style="font-size:10px; margin-top:8px">TikTok</div>
+                    </div>
+                    <div style="text-align:center">
+                        <div class="app-icon-circle" style="background:#FF0000; margin:0 auto">📺</div>
+                        <div style="font-size:10px; margin-top:8px">YouTube</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="Alarm" class="page" style="background: linear-gradient(180deg, #FF9F0A 0%, #FF4B2B 100%); padding:0">
+                <div style="text-align:center; color:white; padding-top:100px">
+                    <h1 style="font-size:48px; margin:0">06:30</h1>
+                    <p style="font-weight:bold; opacity:0.9">WAKE UP CHALLENGE!</p>
+                </div>
+                
+                <div class="scanner-container">
+                    <div class="scan-line"></div>
+                    <div class="focus-bracket" style="top:20px; left:20px; border-right:none; border-bottom:none"></div>
+                    <div class="focus-bracket" style="top:20px; right:20px; border-left:none; border-bottom:none"></div>
+                    <div class="focus-bracket" style="bottom:20px; left:20px; border-right:none; border-top:none"></div>
+                    <div class="focus-bracket" style="bottom:20px; right:20px; border-left:none; border-top:none"></div>
+                    <div style="color:white; font-size:10px; position:absolute; bottom:40px; width:100%; text-align:center; font-weight:bold">QR SCANNER ACTIVE</div>
+                </div>
+
+                <div style="background:rgba(255,255,255,0.2); padding:20px; border-radius:20px; width:85%; margin:0 auto; color:white; text-align:center; border:1px solid rgba(255,255,255,0.3)">
+                    <p style="margin:0; font-weight:bold">Mission: Scan Bathroom QR</p>
+                    <p style="font-size:11px; margin-top:5px">This ensures you are actually out of bed!</p>
+                </div>
+
+                <button onclick="stopAlarm()" style="display:block; margin:30px auto; width:80%; padding:20px; border-radius:20px; background:white; color:var(--orange); border:none; font-weight:bold; font-size:18px; box-shadow:0 10px 30px rgba(0,0,0,0.2)">START SCANNING</button>
+            </div>
+
+            <div id="Rewards" class="page">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+                    <h1 class="header">Rewards</h1>
+                    <div style="background:var(--orange); color:white; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:bold">Platinum Tier</div>
+                </div>
+                <div class="card" style="background:linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color:white; padding:30px; border:none; position:relative; overflow:hidden">
+                    <div style="position:relative; z-index:2">
+                        <div style="font-size:12px; opacity:0.8">CURRENT BALANCE</div>
+                        <div style="font-size:54px; font-weight:800; margin:10px 0">850 <span style="font-size:18px; font-weight:400">pts</span></div>
+                        <div style="font-size:12px; color:var(--orange)">+150 pts from last week</div>
+                    </div>
+                    <div style="position:absolute; right:-20px; bottom:-20px; font-size:120px; opacity:0.1">🏆</div>
+                </div>
+
+                <div style="font-weight:800; margin:25px 0 15px; display:flex; justify-content:space-between; align-items:center">
+                    <span>Leaderboard</span>
+                    <span style="font-size:12px; color:var(--primary)">View All</span>
+                </div>
+                <div class="card" style="padding:10px">
+                    <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee">
+                        <div style="display:flex; align-items:center; gap:12px">
+                            <span style="font-weight:bold; color:#FFD700">1</span>
+                            <div style="width:30px; height:30px; background:#ddd; border-radius:50%"></div>
+                            <span>Sarah M.</span>
+                        </div>
+                        <span style="font-weight:bold">2450 pts</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee">
+                         <div style="display:flex; align-items:center; gap:12px">
+                            <span style="font-weight:bold; color:#C0C0C0">2</span>
+                            <div style="width:30px; height:30px; background:#ddd; border-radius:50%"></div>
+                            <span>Alex K.</span>
+                        </div>
+                        <span style="font-weight:bold">2100 pts</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:15px; background:#f0f7ff; border-radius:15px; border:1.5px solid var(--primary)">
+                         <div style="display:flex; align-items:center; gap:12px">
+                            <span style="font-weight:bold; color:var(--primary)">12</span>
+                            <div style="width:30px; height:30px; background:var(--primary); border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:10px">ME</div>
+                            <span style="font-weight:bold">Nathaniel</span>
+                        </div>
+                        <span style="font-weight:bold">850 pts</span>
+                    </div>
+                </div>
+
+                <div style="font-weight:800; margin:25px 0 15px">New Achievements</div>
+                <div class="card" style="display:flex; align-items:center; gap:20px; border-left:5px solid var(--success)">
+                    <div style="font-size:30px">🏅</div>
+                    <div>
+                        <div style="font-weight:bold">Sleep Master</div>
+                        <div style="font-size:11px; color:var(--subtext)">Bedtime streak: 14 days</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab-item active" onclick="switchTab('Home', this)">🏠<br>Home</div>
+            <div class="tab-item" onclick="switchTab('Lock', this)">🔒<br>Lock</div>
+            <div class="tab-item" onclick="switchTab('Alarm', this)">🔔<br>Alarm</div>
+            <div class="tab-item" onclick="switchTab('Rewards', this)">🏆<br>Rewards</div>
+        </div>
+        <div style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); width:130px; height:5px; background:#000; border-radius:10px; opacity:0.1"></div>
+    </div>
+</div>
+
+<script>
+    let alarmTime = "06:30";
+    let lockTime = "22:30";
+    let curEdit = "";
+
+    function switchTab(id, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    function openSettings(type) {
+        curEdit = type;
+        document.getElementById('set-title').innerText = type === 'alarm' ? "Set Wake-up Challenge" : "Set Sleep Lock Time";
+        document.getElementById('time-input').value = type === 'alarm' ? alarmTime : lockTime;
+        document.getElementById('settings-modal').classList.add('open');
+    }
+
+    function saveSettings() {
+        const val = document.getElementById('time-input').value;
+        if(curEdit === 'alarm') {
+            alarmTime = val;
+            document.getElementById('disp-alarm').innerText = val;
+            document.getElementById('island-time').innerText = val;
+            document.getElementById('lock-target').innerText = val;
+        } else {
+            lockTime = val;
+            document.getElementById('disp-lock').innerText = val;
+        }
+        document.getElementById('settings-modal').classList.remove('open');
+    }
+
+    function stopAlarm() {
+        alert("QR Verified! Habit Point +50 🚀");
+        switchTab('Home', document.querySelectorAll('.tab-item')[0]);
+    }
+
+    setInterval(() => {
+        let countEl = document.getElementById('lock-count');
+        let parts = countEl.innerText.split(':');
+        let h = parseInt(parts[0]), m = parseInt(parts[1]), s = parseInt(parts[2]);
+        if(s > 0) s--;
+        else if(m > 0) { m--; s = 59; }
+        else if(h > 0) { h--; m = 59; s = 59; }
+        countEl.innerText = [h,m,s].map(v => v.toString().padStart(2, '0')).join(':');
+    }, 1000);
+</script>
+</body>
+</html>
